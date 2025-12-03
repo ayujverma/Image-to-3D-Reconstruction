@@ -100,7 +100,7 @@ class R2N2Dataset(Dataset):
 
             if not os.path.isdir(render_cat_dir):
                 continue
-
+            max_num =0
             for model_id in sorted(os.listdir(render_cat_dir)):
                 render_dir = os.path.join(render_cat_dir, model_id, "rendering")
                 voxel_path = os.path.join(voxel_cat_dir, model_id, "model.binvox")
@@ -117,6 +117,9 @@ class R2N2Dataset(Dataset):
                     "images": render_imgs,
                     "voxel": voxel_path
                 })
+                if max_num >32:
+                    break
+                max_num +=1
 
         print(f"[R2N2Dataset] Loaded {len(self.samples)} models.")
 
@@ -160,7 +163,8 @@ class R2N2Dataset(Dataset):
 
         return {
             "images": imgs,
-            "voxels": vox
+            "voxels": vox,
+            "model_id": os.path.basename(os.path.dirname(voxel_path))
         }
 
 def load_data():
@@ -181,6 +185,8 @@ def load_data():
     )
     print(f"Dataset size: {len(dataset)}")
     print(f"Sample data keys: {dataset[0].keys()}")
+    print(f"Sample model ID: {dataset[0]['model_id']}")
     print(f"Image shape: {dataset[0]['images'].shape}")
     print(f"Voxel shape: {dataset[0]['voxels'].shape}")
+    return dataset
 load_data()
