@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import Dataset
 from PIL import Image
 import numpy as np
-
+import json
 
 # -----------------------------
 # Utility: BINVOX file loader
@@ -45,131 +45,165 @@ def read_binvox(path):
         counts = raw_data[1::2]
 
         voxels = np.zeros(np.prod(dims), dtype=np.uint8)
-        idx = 0
+        idx = int(0)
         for v, c in zip(values, counts):
+            c = int(c)
             voxels[idx: idx + c] = v
             idx += c
 
         voxels = voxels.reshape(dims)
         return voxels.astype(np.float32)  # 0/1 float values
 
+# def parse_split(split_dict):
+#     """
+#     Convert nested split.json structure into
+#     a flat list of (category, object_id, view_idx).
+#     """
+#     samples = []
+#     for category, objects in split_dict.items():
+#         for obj_id, view_list in objects.items():
+#             for v in view_list:  # ← ensures every view goes into dataset
+#                 samples.append((category, obj_id, v))
+#     print(len(samples), "samples parsed from split.")
+#     return samples
 
-# -----------------------------------------------------
-# R2N2 / ShapeNet dataset loader
-# -----------------------------------------------------
+
+
+# class R2N2Dataset(Dataset):
+#     def __init__(self, root, samples, transform=None):
+#         """
+#         samples = list of (category, object_id, view_idx)
+#         """
+#         self.root = root
+#         self.samples = samples
+#         self.transform = transform
+
+#     def __len__(self):
+#         return len(self.samples)
+
+#     def __getitem__(self, idx):
+#         category, object_id, view_idx = self.samples[idx]
+
+#         # Example path:
+#         # root/03001627/d8e2e2a923b.../renderings/render_{view_idx}.png
+#         model_dir = os.path.join(self.root, category, object_id)
+
+#         img_path = os.path.join(model_dir, "renderings", f"render_{view_idx:02d}.png")
+#         voxel_path = os.path.join(model_dir, "voxels", "model.binvox")
+
+#         # Load image
+#         img = Image.open(img_path).convert("RGB")
+#         if self.transform:
+#             img = self.transform(img)
+
+#         # Load voxel (implement read_binvox yourself or use a package)
+#         vox = read_binvox(voxel_path)   # → (D,D,D) numpy
+
+#         vox = torch.tensor(vox, dtype=torch.float32).unsqueeze(0)  # (1, D, D, D)
+
+#         return img, vox
+
 class R2N2Dataset(Dataset):
-    def __init__(
-        self,
-        root,
-        categories=None,
-        views_per_model=1,
-        transform=None,
-        voxel_transform=None
-    ):
+    def __init__(self, root_dir, split_json, mode="train", transform=None):
         """
-        Args:
-            root: Root folder containing ShapeNetRendering/ and ShapeNetVoxels/
-            categories: List of synset IDs (e.g., ["02691156"]) or None = use all
-            views_per_model: Number of camera views to load (1–24)
-            transform: torchvision transforms for images
-            voxel_transform: optional transforms on voxel grids
+        root_dir: path to the R2N2 dataset folder
+        split_json: path to split.json
+        mode: "train" or "test"
         """
-        self.root = root
-        self.render_root = os.path.join(root, "ShapeNetRendering")
-        self.voxel_root = os.path.join(root, "ShapeNetVoxels")
-
+        self.root_dir = root_dir
+        self.vox_dir = os.path.join(root_dir, "ShapeNetVoxels")
+        self.img_dir = os.path.join(root_dir, "ShapeNetRendering")
         self.transform = transform
-        self.voxel_transform = voxel_transform
-        self.views_per_model = views_per_model
+        self.images = []    # preloaded image tensors
+        self.voxels = []    # preloaded voxel tensors
 
-        # Collect all models
-        self.samples = []
-        # dirs = ["03001627"]
-        # print("Dirs found: ", dirs)
-        # self.render_root = os.path.join(self.render_root, dirs[0])
-        # self.voxel_root = os.path.join(self.voxel_root, dirs[0])
-        cats = []
-        if categories:
-            cats = categories
-        else:
-            cats = ["03001627"]
+        # ----------------------------------------------------
+        # Load split.json
+        # ----------------------------------------------------
+        print("Dataset mode: ", mode)
+        with open(split_json, "r") as f:
+            split = json.load(f)
 
-        for cat in cats:
-            render_cat_dir = os.path.join(self.render_root, cat)
-            voxel_cat_dir = os.path.join(self.voxel_root, cat)
+        assert mode in split, f"{mode} not found in split.json"
+        mode_split = split[mode]
 
-            if not os.path.isdir(render_cat_dir):
-                continue
-            max_num =0
-            for model_id in sorted(os.listdir(render_cat_dir)):
-                render_dir = os.path.join(render_cat_dir, model_id, "rendering")
-                voxel_path = os.path.join(voxel_cat_dir, model_id, "model.binvox")
+        # ----------------------------------------------------
+        # Iterate through synset categories
+        # Example: "03001627"
+        # ----------------------------------------------------
+        for synset_id, instances in mode_split.items():
+            synset_vox = os.path.join(self.vox_dir, synset_id)
+            synset_img = os.path.join(self.img_dir, synset_id)
+            
 
+            # ------------------------------------------------
+            # For each model instance
+            # Example ID: "d8e2e2a923b372731cf97e154cc62f43"
+            # ------------------------------------------------
+            for model_id, view_ids in instances.items():
+
+                model_vox = os.path.join(synset_vox, model_id)
+                model_img = os.path.join(synset_img, model_id)
+
+                # Voxel file
+                voxel_path = os.path.join(model_vox, "model.binvox")
+                # print(voxel_path)
                 if not os.path.isfile(voxel_path):
                     continue
-                
+
+                voxel_tensor = read_binvox(voxel_path)
+                # ------------------------------------------------
+                # Load all views (all 10 views)
+                # ------------------------------------------------
+                render_dir = os.path.join(model_img, "rendering")
                 render_imgs = sorted(glob.glob(os.path.join(render_dir, "*.png")))
 
+                # Make sure we actually have views
                 if len(render_imgs) == 0:
                     continue
 
-                self.samples.append({
-                    "images": render_imgs,
-                    "voxel": voxel_path
-                })
-                if max_num >32:
-                    break
-                max_num +=1
+                # For each image view, preload image + voxel
+                for img_path in render_imgs:
+                    img_tensor = self._load_image(img_path)
 
-        print(f"[R2N2Dataset] Loaded {len(self.samples)} models.")
+                    self.images.append(img_tensor)
+                    self.voxels.append(voxel_tensor)
+
+        print(f"[Dataset Loaded] {mode}: {len(self.images)} image-voxel pairs loaded.")
+
+    # ----------------------
+    # Image loader
+    # ----------------------
+    def _load_image(self, path):
+        img = Image.open(path).convert("RGB")
+        if self.transform:
+            return self.transform(img)
+        return torch.from_numpy(np.array(img)).permute(2, 0, 1).float() / 255.0
+
+    # ----------------------
+    # Voxel loader (binvox)
+    # ----------------------
+    def _load_voxels(self, path):
+        import binvox  # if you use a binvox reader library
+        with open(path, "rb") as f:
+            vox = binvox.read_as_3d_array(f)
+        vox = torch.tensor(vox.data).float()  # (32, 32, 32)
+        return vox
 
     def __len__(self):
-        return len(self.samples)
+        return len(self.images)
 
     def __getitem__(self, idx):
-        entry = self.samples[idx]
-        img_paths = entry["images"]
-        voxel_path = entry["voxel"]
-
-        # ----------------------
-        # Load VIEWS
-        # ----------------------
-        # Choose N views deterministically (first N for simplicity)
-        chosen_views = img_paths[:self.views_per_model]
-
-        imgs = []
-        for p in chosen_views:
-            img = Image.open(p).convert("RGB")
-            if self.transform:
-                img = self.transform(img)
-            else:
-                img = torch.tensor(np.array(img)).permute(2, 0, 1).float() / 255.0
-            imgs.append(img)
-
-        # If single-view return tensor CxHxW, else VxCxHxW
-        if self.views_per_model == 1:
-            imgs = imgs[0]
-        else:
-            imgs = torch.stack(imgs, dim=0)
-
-        # ----------------------
-        # Load VOXELS
-        # ----------------------
-        vox = read_binvox(voxel_path)  # float32 0/1 array
-        vox = torch.tensor(vox).unsqueeze(0)  # → 1xDxDxD
-
-        if self.voxel_transform:
-            vox = self.voxel_transform(vox)
-
         return {
-            "images": imgs,
-            "voxels": vox,
-            "model_id": os.path.basename(os.path.dirname(voxel_path))
+            "image": self.images[idx],
+            "voxel": self.voxels[idx],
         }
 
-def load_data():
+def load_data(split_path = "/Users/maadhavkothuri/Documents/UT Austin Fall 2025/CS395T/A3/Image-to-3D-Reconstruction/dataset/r2n2_shapenet_dataset/split_03001627.json", r2n2path = "/Users/maadhavkothuri/Documents/UT Austin Fall 2025/CS395T/A3/Image-to-3D-Reconstruction/dataset/r2n2_shapenet_dataset/r2n2", batch_size=32):
+
     from dataset import R2N2Dataset
     import torchvision.transforms as T
+    from torch.utils.data import DataLoader
 
     transform = T.Compose([
         T.Resize(224),
@@ -177,16 +211,12 @@ def load_data():
         T.ToTensor()
     ])
 
-    r2n2path = "/Users/maadhavkothuri/Documents/UT Austin Fall 2025/CS395T/A3/Image-to-3D-Reconstruction/dataset/r2n2_shapenet_dataset/r2n2"
-    dataset = R2N2Dataset(
-        root= r2n2path,
-        views_per_model=1,
-        transform=transform
-    )
-    print(f"Dataset size: {len(dataset)}")
-    print(f"Sample data keys: {dataset[0].keys()}")
-    print(f"Sample model ID: {dataset[0]['model_id']}")
-    print(f"Image shape: {dataset[0]['images'].shape}")
-    print(f"Voxel shape: {dataset[0]['voxels'].shape}")
-    return dataset
-load_data()
+    train_dataset = R2N2Dataset(r2n2path, split_path, mode = "train", transform=transform)
+    test_dataset = R2N2Dataset(r2n2path, split_path, mode = "test", transform=transform)
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+    test_loader  = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
+    print(f"Train samples: {len(train_dataset)}, Test samples: {len(test_dataset)}")
+    return train_loader, test_loader
+if __name__ == "__main__":
+    load_data()

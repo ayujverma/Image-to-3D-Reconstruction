@@ -116,7 +116,7 @@ class Image2VoxelModel(nn.Module):
             [B,V,3,H,W]
         """
         z = self.encoder(images)         # → [B, latent_dim]
-        vox = self.decoder(z)            # → [B,1,32,32,32]
+        vox = self.decoder(z)         # → [B,1,32,32,32]
         return vox
 
 
@@ -145,20 +145,25 @@ def train_one_epoch(model, dataloader, optimizer, device):
     total_loss = 0
 
     bce = nn.BCELoss()
-
+    num_batches = len(dataloader)
+    curr_batch = 0
     for batch in dataloader:
-        imgs = batch["images"].to(device)
-        vox_gt = batch["voxels"].to(device)
+        imgs = batch["image"].to(device)
+        vox_gt = batch["voxel"].to(device).squeeze(1)
 
         optimizer.zero_grad()
 
         vox_pred = model.decoder(model.encoder(imgs))
+        vox_pred = vox_pred.squeeze(1)  # Remove channel dimension
         loss = bce(vox_pred, vox_gt)
 
         loss.backward()
         optimizer.step()
 
         total_loss += loss.item()
+        if curr_batch % 10 == 0:
+            print(f"  Batch {curr_batch+1}/{num_batches} - Loss: {loss.item():.4f}")
+        curr_batch += 1
 
     return total_loss / len(dataloader)
 
@@ -171,8 +176,8 @@ def validate(model, dataloader, device):
 
     with torch.no_grad():
         for batch in dataloader:
-            imgs = batch["images"].to(device)
-            vox_gt = batch["voxels"].to(device)
+            imgs = batch["image"].to(device)
+            vox_gt = batch["voxel"].to(device).squeeze(1)
 
             vox_pred = model(imgs)
             loss = bce(vox_pred, vox_gt)
