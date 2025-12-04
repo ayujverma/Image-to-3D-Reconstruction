@@ -54,56 +54,7 @@ def read_binvox(path):
         voxels = voxels.reshape(dims)
         return voxels.astype(np.float32)  # 0/1 float values
 
-# def parse_split(split_dict):
-#     """
-#     Convert nested split.json structure into
-#     a flat list of (category, object_id, view_idx).
-#     """
-#     samples = []
-#     for category, objects in split_dict.items():
-#         for obj_id, view_list in objects.items():
-#             for v in view_list:  # ← ensures every view goes into dataset
-#                 samples.append((category, obj_id, v))
-#     print(len(samples), "samples parsed from split.")
-#     return samples
-
-
-
-# class R2N2Dataset(Dataset):
-#     def __init__(self, root, samples, transform=None):
-#         """
-#         samples = list of (category, object_id, view_idx)
-#         """
-#         self.root = root
-#         self.samples = samples
-#         self.transform = transform
-
-#     def __len__(self):
-#         return len(self.samples)
-
-#     def __getitem__(self, idx):
-#         category, object_id, view_idx = self.samples[idx]
-
-#         # Example path:
-#         # root/03001627/d8e2e2a923b.../renderings/render_{view_idx}.png
-#         model_dir = os.path.join(self.root, category, object_id)
-
-#         img_path = os.path.join(model_dir, "renderings", f"render_{view_idx:02d}.png")
-#         voxel_path = os.path.join(model_dir, "voxels", "model.binvox")
-
-#         # Load image
-#         img = Image.open(img_path).convert("RGB")
-#         if self.transform:
-#             img = self.transform(img)
-
-#         # Load voxel (implement read_binvox yourself or use a package)
-#         vox = read_binvox(voxel_path)   # → (D,D,D) numpy
-
-#         vox = torch.tensor(vox, dtype=torch.float32).unsqueeze(0)  # (1, D, D, D)
-
-#         return img, vox
-
-class R2N2Dataset(Dataset):
+class Image2VoxelDataset(Dataset):
     def __init__(self, root_dir, split_json, mode="train", transform=None):
         """
         root_dir: path to the R2N2 dataset folder
@@ -199,9 +150,7 @@ class R2N2Dataset(Dataset):
             "voxel": self.voxels[idx],
         }
 
-def load_data(split_path = "/Users/maadhavkothuri/Documents/UT Austin Fall 2025/CS395T/A3/Image-to-3D-Reconstruction/dataset/r2n2_shapenet_dataset/split_03001627.json", r2n2path = "/Users/maadhavkothuri/Documents/UT Austin Fall 2025/CS395T/A3/Image-to-3D-Reconstruction/dataset/r2n2_shapenet_dataset/r2n2", batch_size=32):
-
-    from dataset import R2N2Dataset
+def load_data(split_path = "./dataset/r2n2_shapenet_dataset/split_03001627.json", r2n2path = "./dataset/r2n2_shapenet_dataset/r2n2", batch_size=32):
     import torchvision.transforms as T
     from torch.utils.data import DataLoader
 
@@ -211,12 +160,10 @@ def load_data(split_path = "/Users/maadhavkothuri/Documents/UT Austin Fall 2025/
         T.ToTensor()
     ])
 
-    train_dataset = R2N2Dataset(r2n2path, split_path, mode = "train", transform=transform)
-    test_dataset = R2N2Dataset(r2n2path, split_path, mode = "test", transform=transform)
+    train_dataset = Image2VoxelDataset(r2n2path, split_path, mode = "train", transform=transform)
+    test_dataset = Image2VoxelDataset(r2n2path, split_path, mode = "test", transform=transform)
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
-    test_loader  = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
     print(f"Train samples: {len(train_dataset)}, Test samples: {len(test_dataset)}")
-    return train_loader, test_loader
+    return train_dataset, test_dataset
 if __name__ == "__main__":
     load_data()

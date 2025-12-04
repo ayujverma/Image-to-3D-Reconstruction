@@ -1,7 +1,6 @@
 import torch
-from encoder.encoder import ImageEncoder
-from dataset import R2N2Dataset, load_data
-from img2voxel.models import Image2VoxelModel, train_one_epoch, validate
+from dataset import load_data
+from models import Image2VoxelModel, train_one_epoch, validate
 from torch.utils.data import DataLoader
 import torch
 import matplotlib.pyplot as plt
@@ -25,7 +24,7 @@ def train_model(model, train_loader = None, val_loader = None, optimizer = None,
                     val_ious.append(val_iou)
     
         if (epoch % 10 == 0 or epoch == num_epochs - 1) and save_path is not None:
-            torch.save(model.state_dict(), save_path + f"epoch{epoch}-loss-{train_loss}.pth")
+            torch.save(model.state_dict(), save_path + f"epoch{epoch}.pth")
     loss_dict = {
         "train_losses": train_losses,
         "val_losses": val_losses,
@@ -45,7 +44,7 @@ def visualize_voxel_grid(voxels, ax, title=""):
     ax.set_zlabel("Z")
 
 
-def visualize_image2voxel(model_path, dataset, index=0, device="cpu", model_type = "img2voxel", save_path = None):
+def visualize_image2voxel_results(model_path, dataset, index=0, device="cpu", model_type = "img2voxel", save_path = None):
     """
     model_path: path to saved .pth model
     dataset: R2N2Dataset object
@@ -58,8 +57,9 @@ def visualize_image2voxel(model_path, dataset, index=0, device="cpu", model_type
     checkpoint = torch.load(model_path, map_location=device)
     if model_type == "img2voxel":
         model = Image2VoxelModel()
-        img, voxel_gt = dataset[index]["images"]     # (1,3,H,W)
-        voxel_gt =  voxel_gt.squeeze().numpy()  # (D,D,D) numpy
+        img = dataset[index]["image"]     # (1,3,H,W)
+        voxel_gt = torch.from_numpy(dataset[index]["voxel"]) # (1,D,D,D)
+        voxel_gt =  voxel_gt.squeeze()  # (D,D,D) numpy
     else:
         raise ValueError("Unsupported model type")
     model.load_state_dict(checkpoint)
@@ -102,22 +102,29 @@ def visualize_image2voxel(model_path, dataset, index=0, device="cpu", model_type
 
     plt.tight_layout()
     if save_path is not None:
-        plt.savefig(save_path + "visualization.png")
-    plt.show()
+        plt.savefig(save_path + f"visualization-{index}.png")
+    # plt.show()
 
 def main():
     model = Image2VoxelModel()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     save_path = "./img2voxel/saved_models/"
-    train_loader, test_loader = load_data()
+    trainset, testset = load_data()
+    train_loader = DataLoader(trainset, batch_size=32, shuffle=True)
+    test_loader = DataLoader(testset, batch_size=32, shuffle=False)
     device = torch.device("cpu") if not torch.cuda.is_available() else torch.device("cuda")
     print("Using device:", device)
 
-    train_model(model, train_loader=train_loader, val_loader=test_loader, optimizer=optimizer, device=device, num_epochs=3, save_path = save_path)
-    loss_dict = visualize_image2voxel(save_path + "epoch10-loss-0.5159639716148376.pth", test_loader, index=0, device=device, save_path = "./img2voxel/results/")
-    
+    num_epochs = 40
+    loss_dict = train_model(model, train_loader=train_loader, val_loader=test_loader, optimizer=optimizer, device=device, num_epochs=num_epochs, save_path = save_path)
     with open("./img2voxel/losses.json", "w") as f:
         json.dump(loss_dict, f, indent=4)
+    
+    print(len(testset))
+    visualized_idx = [0, 52, 112, 162, 200]
+    for idx in visualized_idx:
+        visualize_image2voxel_results(save_path + f"epoch{num_epochs -1}.pth", testset, index=idx, device=device, save_path = "./img2voxel/results/")
+    
 
 if __name__ == "__main__":
     main()

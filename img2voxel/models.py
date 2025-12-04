@@ -1,9 +1,7 @@
 # voxel_decoder.py
 import torch
 import torch.nn as nn
-from encoder.encoder import ImageEncoder
-from dataset import R2N2Dataset, load_data
-from torch.utils.data import DataLoader
+from encoder import ImageEncoder
 
 
 class VoxelDecoder(nn.Module):
@@ -177,9 +175,10 @@ def validate(model, dataloader, device):
     with torch.no_grad():
         for batch in dataloader:
             imgs = batch["image"].to(device)
-            vox_gt = batch["voxel"].to(device).squeeze(1)
+            vox_gt = batch["voxel"].to(device).unsqueeze(1)
 
             vox_pred = model(imgs)
+            vox_pred = vox_pred  # Remove channel dimension
             loss = bce(vox_pred, vox_gt)
 
             total_loss += loss.item()
