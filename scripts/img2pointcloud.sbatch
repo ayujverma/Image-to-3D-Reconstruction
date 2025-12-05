@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH -J img2voxel                  # Job name
-#SBATCH -o img2voxel/logs/slurm_%j.out         # Stdout output file
-#SBATCH -e img2voxel/logs/slurm_%j.err         # Stderr error file
+#SBATCH -J img2pointcloud                  # Job name
+#SBATCH -o img2pointcloud/logs/slurm_%j.out         # Stdout output file
+#SBATCH -e img2pointcloud/logs/slurm_%j.err         # Stderr error file
 #SBATCH -p gpu-a100                   # GPU partition (A100 queue)
 #SBATCH -N 1                          # Total number of nodes
 #SBATCH -n 1                          # Total number of tasks
@@ -22,7 +22,7 @@ source venv/bin/activate
 export CUDA_VISIBLE_DEVICES=0
 # Print job info
 echo "============================================================================"
-echo "CHAIR AE TRAINING JOB"
+echo "IMAGE-> POINTCLOUD TRAINING JOB"
 echo "============================================================================"
 echo "Job started at: $(date)"
 echo "Job ID: $SLURM_JOB_ID"

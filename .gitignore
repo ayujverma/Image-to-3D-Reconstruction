@@ -1,3 +1,4 @@
 venv
 dataset/r2n2_shapenet_dataset
 img2voxel/saved_models
+r2n2_shapenet_dataset.zip

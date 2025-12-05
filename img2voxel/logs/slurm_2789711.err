@@ -1,0 +1,1 @@
+/var/spool/slurmd/job2789711/slurm_script: line 35: ./scripts/train_img2pointcloud.sh: Permission denied

@@ -1,0 +1,58 @@
+/scratch/09634/maadhavk631/Image-to-3D-Reconstruction/venv/lib/python3.9/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/scratch/09634/maadhavk631/Image-to-3D-Reconstruction/venv/lib/python3.9/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+Epoch 1/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 1/50:   0%|          | 0/1907 [00:07<?, ?it/s, loss=964]Epoch 1/50:   0%|          | 0/1907 [00:07<?, ?it/s, loss=964]
+Epoch 2/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 2/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=868]Epoch 2/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=868]
+Epoch 3/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 3/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=603]Epoch 3/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=603]
+Epoch 4/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 4/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=284]Epoch 4/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=284]
+Epoch 5/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 5/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=399]Epoch 5/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=399]
+Epoch 6/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 6/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=181]Epoch 6/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=181]
+Epoch 7/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 7/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=194]Epoch 7/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=194]
+Epoch 8/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 8/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=232]Epoch 8/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=232]
+Epoch 9/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 9/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=223]Epoch 9/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=223]
+Epoch 10/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 10/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=186]Epoch 10/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=186]
+Epoch 11/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 11/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=174]Epoch 11/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=174]
+Epoch 12/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 12/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=184]Epoch 12/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=184]
+Epoch 13/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 13/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=187]Epoch 13/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=187]
+Epoch 14/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 14/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=170]Epoch 14/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=170]
+Epoch 15/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 15/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=162]Epoch 15/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=162]
+Epoch 16/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 16/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=166]Epoch 16/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=166]
+Epoch 17/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 17/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=162]Epoch 17/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=162]
+Epoch 18/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 18/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=169]Epoch 18/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=169]
+Epoch 19/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 19/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=171]Epoch 19/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=171]
+Epoch 20/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 20/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=157]Epoch 20/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=157]
+Epoch 21/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 21/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=152]Epoch 21/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=152]
+Epoch 22/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 22/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=159]Epoch 22/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=159]
+Epoch 23/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 23/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=156]Epoch 23/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=156]
+Epoch 24/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 24/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=170]Epoch 24/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=170]
+Epoch 25/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 25/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=157]Epoch 25/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=157]
+Epoch 26/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 26/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=174]Epoch 26/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=174]
+Epoch 27/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 27/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=167]Epoch 27/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=167]
+Epoch 28/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 28/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=159]Epoch 28/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=159]
+Epoch 29/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 29/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=180]Epoch 29/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=180]
+Epoch 30/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 30/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=163]Epoch 30/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=163]
+Epoch 31/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 31/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=155]Epoch 31/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=155]
+Epoch 32/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 32/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=175]Epoch 32/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=175]
+Epoch 33/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 33/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=165]Epoch 33/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=165]
+Epoch 34/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 34/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=170]Epoch 34/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=170]
+Epoch 35/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 35/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=155]Epoch 35/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=155]
+Epoch 36/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 36/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=171]Epoch 36/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=171]
+Epoch 37/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 37/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=173]Epoch 37/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=173]
+Epoch 38/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 38/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=158]Epoch 38/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=158]
+Epoch 39/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 39/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=170]Epoch 39/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=170]
+Epoch 40/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 40/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=176]Epoch 40/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=176]
+Epoch 41/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 41/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=142]Epoch 41/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=142]
+Epoch 42/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 42/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=157]Epoch 42/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=157]
+Epoch 43/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 43/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=141]Epoch 43/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=141]
+Epoch 44/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 44/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=166]Epoch 44/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=166]
+Epoch 45/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 45/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=168]Epoch 45/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=168]
+Epoch 46/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 46/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=167]Epoch 46/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=167]
+Epoch 47/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 47/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=159]Epoch 47/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=159]
+Epoch 48/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 48/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=158]Epoch 48/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=158]
+Epoch 49/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 49/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=152]Epoch 49/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=152]
+Epoch 50/50:   0%|          | 0/1907 [00:00<?, ?it/s]Epoch 50/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=168]Epoch 50/50:   0%|          | 0/1907 [00:00<?, ?it/s, loss=168]
+/scratch/09634/maadhavk631/Image-to-3D-Reconstruction/venv/lib/python3.9/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/scratch/09634/maadhavk631/Image-to-3D-Reconstruction/venv/lib/python3.9/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
