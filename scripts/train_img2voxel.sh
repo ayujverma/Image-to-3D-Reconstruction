@@ -1,0 +1,1 @@
+python img2voxel/train.py

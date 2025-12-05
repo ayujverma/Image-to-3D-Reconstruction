@@ -174,6 +174,7 @@ class Image2PointCloudDataset(Dataset):
 
                     self.images.append(img_tensor)
                     self.points.append(point_cloud)
+                
 
         print(f"[Dataset Loaded] {mode}: {len(self.images)} image-pointcloud pairs loaded.")
 
@@ -218,10 +219,7 @@ def load_data(split_path = "./dataset/r2n2_shapenet_dataset/split_03001627.json"
 
     train_dataset = Image2PointCloudDataset(r2n2path, split_path, mode = "train", transform=transform)
     test_dataset = Image2PointCloudDataset(r2n2path, split_path, mode = "test", transform=transform)
-
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
-    test_loader  = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
     print(f"Train samples: {len(train_dataset)}, Test samples: {len(test_dataset)}")
-    return train_loader, test_loader
+    return train_dataset, test_dataset
 if __name__ == "__main__":
     load_data()

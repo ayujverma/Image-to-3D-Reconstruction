@@ -67,14 +67,6 @@ def visualize_image2voxel_results(model_path, dataset, index=0, device="cpu", mo
     model.eval()
 
     # ------------------------------
-    # Load a sample from the dataset
-    # ------------------------------
-    # img, voxel_gt, model_id = dataset[index]
-    # print(dataset[index])
-    # img = img.unsqueeze(0).to(device)      # (1,3,H,W)
-    # voxel_gt = voxel_gt.squeeze().numpy()  # (D,D,D) numpy
-
-    # ------------------------------
     # Run model
     # ------------------------------
     with torch.no_grad():
