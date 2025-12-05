@@ -70,7 +70,6 @@ def train_pointcloud_model(
                 loss = criterion(pred_points, gt_points)
 
                 val_loss += loss.item()
-                break
 
         avg_val_loss = val_loss / len(val_loader)
 
