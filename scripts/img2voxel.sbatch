@@ -32,8 +32,6 @@ echo "Running on node: $(hostname)"
 echo "CUDA Version: $(nvcc --version)"
 echo "PyTorch sees GPU: $(python -c 'import torch; print(torch.cuda.is_available(), torch.cuda.device_count(), torch.cuda.get_device_name(0))')"
 # Create output directories
-mkdir -p logs output checkpoints
-# Change to PointFlow repo
-cd /work/10692/maadhavk631/Image-to-3D-Reconstruction
+
 # Run Autoencoder training script
-./scripts/shapenet_chair_ae.sh
+./scripts/train_img2voxel.sh
