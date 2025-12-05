@@ -172,12 +172,11 @@ def main():
     device = torch.device("cpu") if not torch.cuda.is_available() else torch.device("cuda")
     print("Using device:", device)
 
-    num_epochs = 10
+    num_epochs = 50
     loss_dict = train_pointcloud_model(model, train_loader=train_loader, val_loader=test_loader, optimizer=optimizer, device=device, num_epochs=num_epochs, save_path = save_path)
     with open("./img2voxel/losses.json", "w") as f:
         json.dump(loss_dict, f, indent=4)
     
-    print(len(testset))
     visualized_idx = [0, 52, 112, 162, 200]
     for idx in visualized_idx:
         visualize_image2pointcloud_results(save_path + f"epoch{num_epochs -1}.pth", testset, index=idx, device=device, save_path = "./img2voxel/results/")
