@@ -19,7 +19,6 @@ module load cuda/12.8
 
 python -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
 # Restrict PyTorch to the first GPU
 export CUDA_VISIBLE_DEVICES=0
 # Print job info
@@ -34,4 +33,4 @@ echo "PyTorch sees GPU: $(python -c 'import torch; print(torch.cuda.is_available
 # Create output directories
 
 # Run Autoencoder training script
-./scripts/train_img2voxel.sh
+sudo ./scripts/train_img2voxel.sh
