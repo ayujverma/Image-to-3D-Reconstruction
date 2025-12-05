@@ -54,7 +54,6 @@ def train_pointcloud_model(
 
             total_loss += loss.item()
             pbar.set_postfix({"loss": loss.item()})
-            break
 
         avg_train_loss = total_loss / len(train_loader)
 
@@ -174,12 +173,12 @@ def main():
 
     num_epochs = 50
     loss_dict = train_pointcloud_model(model, train_loader=train_loader, val_loader=test_loader, optimizer=optimizer, device=device, num_epochs=num_epochs, save_path = save_path)
-    with open("./img2voxel/losses.json", "w") as f:
+    with open("./img2pointcloud/losses.json", "w") as f:
         json.dump(loss_dict, f, indent=4)
     
     visualized_idx = [0, 52, 112, 162, 200]
     for idx in visualized_idx:
-        visualize_image2pointcloud_results(save_path + f"epoch{num_epochs -1}.pth", testset, index=idx, device=device, save_path = "./img2voxel/results/")
+        visualize_image2pointcloud_results(save_path + f"epoch{num_epochs -1}.pth", testset, index=idx, device=device, save_path = "./img2pointcloud/results/")
     
 
 if __name__ == "__main__":
