@@ -1,0 +1,69 @@
+============================================================================
+IMAGE-> POINTCLOUD TRAINING JOB
+============================================================================
+Job started at: Fri Dec  5 17:38:39 CST 2025
+Job ID: 2791089
+Running on node: c303-003.ls6.tacc.utexas.edu
+CUDA Version: nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2025 NVIDIA Corporation
+Built on Wed_Jan_15_19:20:09_PST_2025
+Cuda compilation tools, release 12.8, V12.8.61
+Build cuda_12.8.r12.8/compiler.35404655_0
+PyTorch sees GPU: True 1 NVIDIA A100-PCIE-40GB
+Dataset mode:  train
+[Dataset Loaded] train: 61000 image-pointcloud pairs loaded.
+Dataset mode:  test
+[Dataset Loaded] test: 6780 image-pointcloud pairs loaded.
+Train samples: 61000, Test samples: 6780
+Using device: cuda
+Epoch 1/50 → Train Loss = 7.9477, Val Loss = 5.7356
+Epoch 2/50 → Train Loss = 5.0311, Val Loss = 4.4620
+Epoch 3/50 → Train Loss = 4.2803, Val Loss = 4.3098
+Epoch 4/50 → Train Loss = 3.9133, Val Loss = 3.9872
+Epoch 5/50 → Train Loss = 3.6588, Val Loss = 3.8866
+Epoch 6/50 → Train Loss = 3.4465, Val Loss = 3.6582
+Epoch 7/50 → Train Loss = 3.2565, Val Loss = 3.4812
+Epoch 8/50 → Train Loss = 3.0838, Val Loss = 3.3191
+Epoch 9/50 → Train Loss = 2.9335, Val Loss = 3.3161
+Epoch 10/50 → Train Loss = 2.8174, Val Loss = 3.2611
+Epoch 11/50 → Train Loss = 2.6845, Val Loss = 3.1240
+Epoch 12/50 → Train Loss = 2.5795, Val Loss = 3.0945
+Epoch 13/50 → Train Loss = 2.4868, Val Loss = 8.3409
+Epoch 14/50 → Train Loss = 2.4050, Val Loss = 3.0938
+Epoch 15/50 → Train Loss = 2.3187, Val Loss = 3.1011
+Epoch 16/50 → Train Loss = 2.2449, Val Loss = 3.0630
+Epoch 17/50 → Train Loss = 2.1773, Val Loss = 7.8379
+Epoch 18/50 → Train Loss = 2.1140, Val Loss = 3.0721
+Epoch 19/50 → Train Loss = 2.0582, Val Loss = 8.9017
+Epoch 20/50 → Train Loss = 2.0009, Val Loss = 3.0013
+Epoch 21/50 → Train Loss = 1.9600, Val Loss = 3.0279
+Epoch 22/50 → Train Loss = 1.9131, Val Loss = 3.0088
+Epoch 23/50 → Train Loss = 1.8721, Val Loss = 2.9777
+Epoch 24/50 → Train Loss = 1.8354, Val Loss = 3.0246
+Epoch 25/50 → Train Loss = 1.8043, Val Loss = 3.0055
+Epoch 26/50 → Train Loss = 1.7649, Val Loss = 2.9635
+Epoch 27/50 → Train Loss = 1.7338, Val Loss = 2.9705
+Epoch 28/50 → Train Loss = 1.7046, Val Loss = 2.9818
+Epoch 29/50 → Train Loss = 1.6749, Val Loss = 2.9713
+Epoch 30/50 → Train Loss = 1.6475, Val Loss = 3.0684
+Epoch 31/50 → Train Loss = 1.6218, Val Loss = 2.9535
+Epoch 32/50 → Train Loss = 1.6029, Val Loss = 2.9473
+Epoch 33/50 → Train Loss = 1.5740, Val Loss = 2.9645
+Epoch 34/50 → Train Loss = 1.5589, Val Loss = 3.0260
+Epoch 35/50 → Train Loss = 1.5377, Val Loss = 3.0418
+Epoch 36/50 → Train Loss = 1.5163, Val Loss = 3.0134
+Epoch 37/50 → Train Loss = 1.4993, Val Loss = 3.0133
+Epoch 38/50 → Train Loss = 1.4843, Val Loss = 2.9865
+Epoch 39/50 → Train Loss = 1.4691, Val Loss = 2.9763
+Epoch 40/50 → Train Loss = 1.4479, Val Loss = 2.9577
+Epoch 41/50 → Train Loss = 1.4366, Val Loss = 3.0141
+Epoch 42/50 → Train Loss = 1.4170, Val Loss = 2.9667
+Epoch 43/50 → Train Loss = 1.4052, Val Loss = 6.5893
+Epoch 44/50 → Train Loss = 1.3945, Val Loss = 7.7013
+Epoch 45/50 → Train Loss = 1.3815, Val Loss = 2.9840
+Epoch 46/50 → Train Loss = 1.3697, Val Loss = 2.9613
+Epoch 47/50 → Train Loss = 1.3545, Val Loss = 3.0434
+Epoch 48/50 → Train Loss = 1.3457, Val Loss = 2.9707
+Epoch 49/50 → Train Loss = 1.3356, Val Loss = 2.9842
+Epoch 50/50 → Train Loss = 1.3247, Val Loss = 3.0002
+Training complete.
