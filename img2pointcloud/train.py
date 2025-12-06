@@ -152,6 +152,14 @@ def visualize_image2pointcloud_results(model_path, dataset, index=0, device="cpu
     ax2.set_xlim(min_xyz[0], max_xyz[0])
     ax2.set_ylim(min_xyz[1], max_xyz[1])
     ax2.set_zlim(min_xyz[2], max_xyz[2])
+    def set_axes_equal(ax):
+        extents = np.array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()])
+        centers = np.mean(extents, axis=1)
+        max_range = np.max(extents[:,1] - extents[:,0])
+        for ctr, axis in zip(centers, [ax.set_xlim3d, ax.set_ylim3d, ax.set_zlim3d]):
+            axis(ctr - max_range/2, ctr + max_range/2)
+    set_axes_equal(ax1)
+    set_axes_equal(ax2)
 
     plt.tight_layout()
 
@@ -171,9 +179,9 @@ def main():
     print("Using device:", device)
 
     num_epochs = 50
-    loss_dict = train_pointcloud_model(model, train_loader=train_loader, val_loader=test_loader, optimizer=optimizer, device=device, num_epochs=num_epochs, save_path = save_path)
-    with open("./img2pointcloud/losses.json", "w") as f:
-        json.dump(loss_dict, f, indent=4)
+    # loss_dict = train_pointcloud_model(model, train_loader=train_loader, val_loader=test_loader, optimizer=optimizer, device=device, num_epochs=num_epochs, save_path = save_path)
+    # with open("./img2pointcloud/losses.json", "w") as f:
+    #     json.dump(loss_dict, f, indent=4)
     
     visualized_idx = [0, 52, 112, 162, 200]
     for idx in visualized_idx:

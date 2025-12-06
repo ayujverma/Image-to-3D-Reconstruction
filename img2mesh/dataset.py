@@ -109,7 +109,7 @@ def read_binvox(path):
         return voxels.astype(np.float32)  # 0/1 float values
 
 class Image2MeshDataset(Dataset):
-    def __init__(self, root_dir, split_json, mode="train", transform=None):
+    def __init__(self, root_dir, split_json, mesh_list, mode="train", transform=None, ):
         """
         root_dir: path to the R2N2 dataset folder
         split_json: path to split.json
@@ -162,7 +162,7 @@ class Image2MeshDataset(Dataset):
                 point_cloud = sample_points_from_mesh(verts, faces, num_points=2048)
                 # ------------------------------------------------
                 # Load all views (all 10 views)
-                # ------------------------------------------------
+                # ----------------------- -------------------------
                 render_dir = os.path.join(model_img, "rendering")
                 render_imgs = sorted(glob.glob(os.path.join(render_dir, "*.png")))
 
@@ -176,10 +176,13 @@ class Image2MeshDataset(Dataset):
 
                     self.images.append(img_tensor)
                     self.points.append(point_cloud)
-                    self.faces.append(torch.from_numpy(faces.copy()))
-                    self.verts.append(torch.from_numpy(verts.copy()))
+                    mesh_list.append({
+                        "verts": torch.from_numpy(verts.copy()),
+                        "faces": torch.from_numpy(faces.copy())
+                    })
 
         print(f"[Dataset Loaded] {mode}: {len(self.images)} image-mesh pairs loaded.")
+ 
 
     # ----------------------
     # Image loader
@@ -206,9 +209,7 @@ class Image2MeshDataset(Dataset):
     def __getitem__(self, idx):
         return {
             "images": self.images[idx],
-            "points": self.points[idx],
-            "verts": self.verts[idx],
-            "faces": self.faces[idx],
+            "points": self.points[idx]
         }
     
 
@@ -221,11 +222,12 @@ def load_data(split_path = "./dataset/r2n2_shapenet_dataset/split_03001627.json"
         T.CenterCrop(224),
         T.ToTensor()
     ])
-
-    train_dataset = Image2MeshDataset(r2n2path, split_path, mode = "train", transform=transform)
-    test_dataset = Image2MeshDataset(r2n2path, split_path, mode = "test", transform=transform)
+    train_meshes = []
+    test_meshes = []
+    train_dataset = Image2MeshDataset(r2n2path, split_path, train_meshes, mode = "train", transform=transform)
+    test_dataset = Image2MeshDataset(r2n2path, split_path, test_meshes, mode = "test", transform=transform)
     print(f"Train samples: {len(train_dataset)}, Test samples: {len(test_dataset)}")
     print("Example data point keys:", train_dataset[0].keys())
-    return train_dataset, test_dataset
+    return train_dataset, test_dataset, train_meshes, test_meshes
 if __name__ == "__main__":
     load_data()

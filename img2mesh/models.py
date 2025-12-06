@@ -148,7 +148,7 @@ def train_mesh_epoch(model, train_loader, test_loader, optimizer, device = "cpu"
         smooth_loss = laplacian_smoothness(pred_verts, model.adj_list)
 
         # Total loss
-        loss = chamfer_loss_val + 0.1 * smooth_loss
+        loss = chamfer_loss_val + 0.2 * smooth_loss
         loss.backward()
         optimizer.step()
 
@@ -178,10 +178,10 @@ def train_mesh_epoch(model, train_loader, test_loader, optimizer, device = "cpu"
             chamfer_loss = chamfer_fn(pred_points, gt_points)
 
             # ---- Smoothness Loss ----
-            smooth_loss = laplacian_smoothness(pred_verts, model.adj_list)
+            smooth_loss = laplacian_smoothness(pred_verts, model.adj_list) + edge_length_regularizer(pred_verts, faces)
 
             # Total loss
-            loss = chamfer_loss + 0.1 * smooth_loss
+            loss = chamfer_loss + 0.2 * smooth_loss
 
             val_loss += loss.item()
             break
@@ -220,30 +220,31 @@ def build_adjacency_matrix(faces, num_vertices):
 # 2. SAMPLE POINTS ON PREDICTED MESH (differentiable)
 # -----------------------------------------------------
 def sample_points_on_mesh(pred_verts, faces, num_samples):
-    B, V, _ = pred_verts.shape
-    device = pred_verts.device
-    
-    v0 = pred_verts[:, faces[:, 0], :]   # [B,F,3]
-    v1 = pred_verts[:, faces[:, 1], :]
-    v2 = pred_verts[:, faces[:, 2], :]
-    # Areas for weighted sampling
-    tri_areas = 0.5 * torch.norm(torch.cross(v1 - v0, v2 - v0, dim=2), dim=2)  # [B,F]
-    tri_probs = tri_areas / (tri_areas.sum(dim=1, keepdim=True) + 1e-9)
+        B, V, _ = pred_verts.shape
+        device = pred_verts.device
 
-    # Sample triangles (not differentiable, but vertex ops ARE)
-    idx = torch.multinomial(tri_probs, num_samples, replacement=True)  # [B,Ng]
+        v0 = pred_verts[:, faces[:, 0], :]   # [B,F,3]
+        v1 = pred_verts[:, faces[:, 1], :]
+        v2 = pred_verts[:, faces[:, 2], :]
+        # Areas for weighted sampling
+        tri_areas = 0.5 * torch.norm(torch.cross(v1 - v0, v2 - v0, dim=2), dim=2)  # [B,F]
+        tri_probs = tri_areas / (tri_areas.sum(dim=1, keepdim=True) + 1e-9)
 
-    # Gather triangle vertices
-    v0_s = v0.gather(1, idx.unsqueeze(-1).repeat(1,1,3))  # [B,Ng,3]
-    v1_s = v1.gather(1, idx.unsqueeze(-1).repeat(1,1,3))
-    v2_s = v2.gather(1, idx.unsqueeze(-1).repeat(1,1,3))
+        # Sample triangles (not differentiable, but vertex ops ARE)
+        with torch.no_grad():
+            idx = torch.multinomial(tri_probs, num_samples, replacement=True)  # [B,Ng]
 
-    # Barycentric sampling (differentiable)
-    u = torch.sqrt(torch.rand(B, num_samples, 1, device=device))
-    v = torch.rand(B, num_samples, 1, device=device)
+        # Gather triangle vertices
+        v0_s = v0.gather(1, idx.unsqueeze(-1).repeat(1,1,3))  # [B,Ng,3]
+        v1_s = v1.gather(1, idx.unsqueeze(-1).repeat(1,1,3))
+        v2_s = v2.gather(1, idx.unsqueeze(-1).repeat(1,1,3))
 
-    pts = (1 - u) * v0_s + u * (1 - v) * v1_s + u * v * v2_s
-    return pts  # [B,Ng,3]
+        # Barycentric sampling (differentiable)
+        u = torch.sqrt(torch.rand(B, num_samples, 1, device=device))
+        v = torch.rand(B, num_samples, 1, device=device)
+
+        pts = (1 - u) * v0_s + u * (1 - v) * v1_s + u * v * v2_s
+        return pts  # [B,Ng,3]
 
 
 # -----------------------------------------------------

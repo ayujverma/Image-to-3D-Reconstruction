@@ -21,10 +21,10 @@ def train_mesh_model(model, train_loader, val_loader, optimizer, num_epochs=20, 
             torch.save(model.state_dict(), save_path + f"epoch{epoch}.pth")
     return loss_dict
 
-def visualize_image2mesh_results(model_path, dataset, template_mesh, index=0, device="cpu", save_path=None):
+def visualize_image2mesh_results(model_path, dataset, meshes, template_mesh, index=0, device="cpu", save_path=None):
     image_tensor = dataset[index]["images"].to(device)  # [1, 3, H, W]
-    gt_verts = dataset[index]["verts"].to(device)            # [V, 3]
-    gt_faces = dataset[index]["faces"].to(device)            # [F,
+    gt_verts = meshes[index]["verts"].to(device)            # [V, 3]
+    gt_faces = meshes[index]["faces"].to(device)            # [F,
     img = image_tensor.permute(1,2,0).cpu().numpy()
     with torch.no_grad():
         model = Img2MeshModel(template_verts_numpy=template_mesh["verts"], template_faces_numpy=template_mesh["faces"], adj_list=build_adjacency_matrix(template_mesh["faces"], template_mesh["verts"].shape[0]))
@@ -97,7 +97,7 @@ def main():
     model = Img2MeshModel(template_verts_numpy=tpl["verts"], template_faces_numpy=tpl["faces"], adj_list=adj_list)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     save_path = "./img2mesh/saved_models/"
-    trainset, testset = load_data()
+    trainset, testset, train_meshes, test_meshes = load_data()
     train_loader = DataLoader(trainset, batch_size=32, shuffle=True)
     test_loader = DataLoader(testset, batch_size=32, shuffle=False)
     device = torch.device("cpu") if not torch.cuda.is_available() else torch.device("cuda")
@@ -108,11 +108,11 @@ def main():
     with open("./img2mesh/losses.json", "w") as f:
         json.dump(loss_dict, f, indent=4)
     
-    # visualized_idx = [0, 52, 112, 162, 200]
-    visualized_idx = [0, 1, 2, 3, 4]
+    visualized_idx = [0, 52, 112, 162, 200]
+    # visualized_idx = [0, 1, 2, 3, 4]
 
     for idx in visualized_idx:
-        visualize_image2mesh_results(save_path + f"epoch{num_epochs -1}.pth", testset, template_mesh=tpl, index=idx, device=device, save_path = "./img2mesh/results/")
+        visualize_image2mesh_results(save_path + f"epoch{num_epochs -1}.pth", testset, test_meshes, template_mesh=tpl, index=idx, device=device, save_path = "./img2mesh/results/")
 
 if __name__ == "__main__":
     main()
