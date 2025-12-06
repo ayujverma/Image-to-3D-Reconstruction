@@ -154,7 +154,6 @@ def visualize_image2pointcloud_results(model_path, dataset, index=0, device="cpu
     ax2.set_zlim(min_xyz[2], max_xyz[2])
 
     plt.tight_layout()
-    plt.show()
 
     if save_path is not None:
         plt.savefig(save_path + f"result_{index}.png")

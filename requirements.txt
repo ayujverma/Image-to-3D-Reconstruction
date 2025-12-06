@@ -8,3 +8,5 @@ tqdm
 scikit-learn
 scikit-image
 binvox
+trimesh
+'pyglet<2'

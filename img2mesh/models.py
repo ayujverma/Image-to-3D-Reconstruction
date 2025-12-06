@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from encoder import ImageEncoder
+import numpy as np
 
 
 class ChamferDistance(nn.Module):
@@ -69,12 +70,12 @@ class MeshDecoder(nn.Module):
         B = z.shape[0]
         out = self.mlp(z)                 # [B, V*3]
         out = out.view(B, -1, 3)         # [B, V, 3] --> predicted deltaV
-        pred_verts = self.V0.unsqueeze(0) + out  # broadcast add: [B, V, 3]
+        pred_verts = torch.add(self.V0.unsqueeze(0), out)  # broadcast add: [B, V, 3]
         return pred_verts                 # predicted mesh vertices
 
 class Img2MeshModel(nn.Module):
     def __init__(self, latent_dim=512, pretrained_encoder=False,
-                 template_verts_numpy=None, template_faces_numpy=None, hidden_dim=512):
+                 template_verts_numpy=None, template_faces_numpy=None, hidden_dim=512, adj_list=None):
         super().__init__()
         self.encoder = ImageEncoder(
             pretrained=pretrained_encoder,
@@ -86,6 +87,7 @@ class Img2MeshModel(nn.Module):
             template_faces_numpy=template_faces_numpy,
             hidden_dim=hidden_dim
         )
+        self.register_buffer("adj_list", adj_list)
 
     def forward(self, images):
         """
@@ -95,50 +97,6 @@ class Img2MeshModel(nn.Module):
         z = self.encoder(images)        # shape [B, latent_dim]
         pred_verts = self.decoder(z)    # shape [B, V, 3]
         return pred_verts
-
-def train_mesh_epoch(model, dataloader, optimizer, sample_fn , smoothness_fn, device):
-    """
-    model: encoder + mesh decoder
-    sample_fn: function(verts, faces, N) → sampled surface points   (your sampler)
-    smoothness_fn: Laplacian or edge loss function
-    """
-    chamfer_fn = ChamferDistance()
-
-    model.train()
-    total_loss = 0
-
-    for batch in dataloader:
-        imgs      = batch["image"].to(device)
-        gt_points = batch["points"].to(device)   # pre-sampled GT mesh points
-        faces     = batch["faces"].to(device)    # fixed template faces
-
-        optimizer.zero_grad()
-
-        # ---- Forward ----
-        z = model.encoder(imgs)
-        pred_verts = model.decoder(z)     # [B, V, 3]
-
-        # Deform the template
-        template_verts = model.template_verts.to(device)  # [V, 3]
-        pred_verts = pred_verts + template_verts          # final mesh verts
-
-        # ---- Sample points from predicted mesh ----
-        pred_points = sample_fn(pred_verts, faces, N=2048)  # [B, N, 3]
-
-        # ---- Chamfer Loss ----
-        chamfer_loss = chamfer_fn(pred_points, gt_points)
-
-        # ---- Smoothness Loss ----
-        smooth_loss = smoothness_fn(pred_verts, faces)
-
-        # Total loss
-        loss = chamfer_loss + 0.1 * smooth_loss
-        loss.backward()
-        optimizer.step()
-
-        total_loss += loss.item()
-
-    return total_loss / len(dataloader)
 
 def chamfer_loss(x, y):
     # x: [B, N, 3]
@@ -153,6 +111,110 @@ def chamfer_loss(x, y):
 
     return x2y.mean() + y2x.mean()
 
+def train_mesh_epoch(model, train_loader, test_loader, optimizer, device = "cpu"):
+    """
+    model: encoder + mesh decoder
+    sample_fn: function(verts, faces, N) → sampled surface points   (your sampler)
+    smoothness_fn: Laplacian or edge loss function
+    """
+
+    model.train()
+    train_loss = 0
+    val_loss = 0
+    chamfer_fn = ChamferDistance()
+
+    for batch in train_loader:
+        imgs      = batch["images"].to(device)
+        gt_points = batch["points"].to(device)   # pre-sampled GT mesh points
+        faces     = model.decoder.F0.to(device)    # fixed template faces
+
+        optimizer.zero_grad()
+
+        # ---- Forward ----
+        z = model.encoder(imgs)
+        pred_verts = model.decoder(z)     # [B, V, 3]
+
+        # Deform the template
+        template_verts = model.decoder.V0.to(device)  # [V, 3]
+        pred_verts = pred_verts + template_verts          # final mesh verts
+
+        # ---- Sample points from predicted mesh ----
+        pred_points = sample_points_on_mesh(pred_verts, faces, num_samples=2048)  # [B, N, 3]
+
+        # ---- Chamfer Loss ----
+        chamfer_loss_val = chamfer_fn(pred_points, gt_points)
+
+        # ---- Smoothness Loss ----
+        smooth_loss = laplacian_smoothness(pred_verts, model.adj_list)
+
+        # Total loss
+        loss = chamfer_loss_val + 0.1 * smooth_loss
+        loss.backward()
+        optimizer.step()
+
+        train_loss += loss.item()
+        break
+    avg_train_loss = train_loss / len(train_loader)
+    
+    for batch in test_loader:
+        imgs      = batch["images"].to(device)
+        gt_points = batch["points"].to(device)   # pre-sampled GT mesh points
+        faces     = model.decoder.F0.to(device)    # fixed template faces
+
+        with torch.no_grad():
+            model.eval()
+            # ---- Forward ----
+            z = model.encoder(imgs)
+            pred_verts = model.decoder(z)     # [B, V, 3]
+
+            # Deform the template
+            template_verts = model.decoder.V0.to(device)  # [V, 3]
+            pred_verts = pred_verts + template_verts          # final mesh verts
+
+            # ---- Sample points from predicted mesh ----
+            pred_points = sample_points_on_mesh(pred_verts, faces, num_samples=2048)  # [B, N, 3]
+
+            # ---- Chamfer Loss ----
+            chamfer_loss = chamfer_fn(pred_points, gt_points)
+
+            # ---- Smoothness Loss ----
+            smooth_loss = laplacian_smoothness(pred_verts, model.adj_list)
+
+            # Total loss
+            loss = chamfer_loss + 0.1 * smooth_loss
+
+            val_loss += loss.item()
+            break
+    avg_val_loss = val_loss / len(test_loader)
+
+    return avg_train_loss, avg_val_loss
+
+
+def build_adjacency_matrix(faces, num_vertices):
+    """
+    faces: [F, 3] long tensor
+    returns:
+       adj: [V, V] boolean adjacency matrix
+    """
+    if isinstance(faces, torch.Tensor):
+        faces_np = faces.cpu().numpy()
+    else:
+        faces_np = faces
+
+    adj = np.zeros((num_vertices, num_vertices), dtype=np.bool_)
+
+    # For each triangle, add undirected edges
+    for (a, b, c) in faces_np:
+        adj[a, b] = adj[b, a] = True
+        adj[a, c] = adj[c, a] = True
+        adj[b, c] = adj[c, b] = True
+
+    # Remove self-connections just in case
+    np.fill_diagonal(adj, False)
+
+    return torch.tensor(adj, dtype=torch.bool)
+
+
 
 # -----------------------------------------------------
 # 2. SAMPLE POINTS ON PREDICTED MESH (differentiable)
@@ -160,11 +222,10 @@ def chamfer_loss(x, y):
 def sample_points_on_mesh(pred_verts, faces, num_samples):
     B, V, _ = pred_verts.shape
     device = pred_verts.device
-
+    
     v0 = pred_verts[:, faces[:, 0], :]   # [B,F,3]
     v1 = pred_verts[:, faces[:, 1], :]
     v2 = pred_verts[:, faces[:, 2], :]
-
     # Areas for weighted sampling
     tri_areas = 0.5 * torch.norm(torch.cross(v1 - v0, v2 - v0, dim=2), dim=2)  # [B,F]
     tri_probs = tri_areas / (tri_areas.sum(dim=1, keepdim=True) + 1e-9)

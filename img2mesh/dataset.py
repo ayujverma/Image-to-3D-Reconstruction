@@ -178,7 +178,6 @@ class Image2MeshDataset(Dataset):
                     self.points.append(point_cloud)
                     self.faces.append(torch.from_numpy(faces.copy()))
                     self.verts.append(torch.from_numpy(verts.copy()))
-                
 
         print(f"[Dataset Loaded] {mode}: {len(self.images)} image-mesh pairs loaded.")
 
