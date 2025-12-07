@@ -7,7 +7,6 @@ import torch
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import json
-import numpy as np
 
 def train_model(model, train_loader = None, val_loader = None, optimizer = None, device = 'cpu', num_epochs = 30, save_path = None):
     train_losses, val_losses, val_ious = [], [], []
@@ -95,15 +94,6 @@ def visualize_image2voxel_results(model_path, dataset, index=0, device="cpu", mo
     # Ground truth voxels
     ax3 = fig.add_subplot(1, 3, 3, projection='3d')
     visualize_voxel_grid(voxel_gt, ax3, title="Ground Truth Voxel Grid")
-    
-    def set_axes_equal(ax):
-        extents = np.array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()])
-        centers = np.mean(extents, axis=1)
-        max_range = np.max(extents[:,1] - extents[:,0])
-        for ctr, axis in zip(centers, [ax.set_xlim3d, ax.set_ylim3d, ax.set_zlim3d]):
-            axis(ctr - max_range/2, ctr + max_range/2)
-    set_axes_equal(ax2)
-    set_axes_equal(ax3)
 
     plt.tight_layout()
     if save_path is not None:

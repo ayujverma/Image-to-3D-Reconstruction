@@ -1,0 +1,82 @@
+===============================================================================
+IMAGE2MESH TRAINING JOB
+Started: Sat Dec  6 18:21:17 CST 2025
+Node: c318-001.ls6.tacc.utexas.edu
+CUDA version:
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2023 NVIDIA Corporation
+Built on Tue_Jul_11_02:20:44_PDT_2023
+Cuda compilation tools, release 12.2, V12.2.128
+Build cuda_12.2.r12.2/compiler.33053471_0
+===============================================================================
+Dataset mode:  train
+[Dataset Loaded] train: 61000 image-mesh pairs loaded.
+Dataset mode:  test
+[Dataset Loaded] test: 6780 image-mesh pairs loaded.
+Train samples: 61000, Test samples: 6780
+Example data point keys: dict_keys(['images', 'points'])
+Using device: cuda
+Starting training...
+Epoch 1/50, Train Loss: 22.2018, Val Loss: 12.1833
+Saving model for epoch 0...
+Model saved.
+Epoch 2/50, Train Loss: 11.6723, Val Loss: 11.9762
+Epoch 3/50, Train Loss: 10.6540, Val Loss: 12.4053
+Epoch 4/50, Train Loss: 10.1941, Val Loss: 10.2893
+Epoch 5/50, Train Loss: 9.4267, Val Loss: 9.5921
+Epoch 6/50, Train Loss: 9.1274, Val Loss: 11.0751
+Epoch 7/50, Train Loss: 8.8796, Val Loss: 16.0752
+Epoch 8/50, Train Loss: 8.6211, Val Loss: 8.6675
+Epoch 9/50, Train Loss: 8.3915, Val Loss: 15.0669
+Epoch 10/50, Train Loss: 8.2553, Val Loss: 8.4567
+Epoch 11/50, Train Loss: 8.1702, Val Loss: 8.5584
+Saving model for epoch 10...
+Model saved.
+Epoch 12/50, Train Loss: 7.9770, Val Loss: 8.2577
+Epoch 13/50, Train Loss: 7.7972, Val Loss: 16.3491
+Epoch 14/50, Train Loss: 7.5828, Val Loss: 8.0387
+Epoch 15/50, Train Loss: 7.4112, Val Loss: 8.0460
+Epoch 16/50, Train Loss: 7.2978, Val Loss: 8.1162
+Epoch 17/50, Train Loss: 7.1676, Val Loss: 7.9296
+Epoch 18/50, Train Loss: 7.0136, Val Loss: 8.6438
+Epoch 19/50, Train Loss: 6.9358, Val Loss: 7.9304
+Epoch 20/50, Train Loss: 6.8121, Val Loss: 13.7979
+Epoch 21/50, Train Loss: 6.6899, Val Loss: 7.7920
+Saving model for epoch 20...
+Model saved.
+Epoch 22/50, Train Loss: 6.6172, Val Loss: 7.7104
+Epoch 23/50, Train Loss: 6.5242, Val Loss: 7.6688
+Epoch 24/50, Train Loss: 6.4842, Val Loss: 9.3948
+Epoch 25/50, Train Loss: 6.4049, Val Loss: 20.8982
+Epoch 26/50, Train Loss: 6.2931, Val Loss: 7.4298
+Epoch 27/50, Train Loss: 6.2034, Val Loss: 15.0308
+Epoch 28/50, Train Loss: 6.1580, Val Loss: 7.4163
+Epoch 29/50, Train Loss: 6.1037, Val Loss: 7.4355
+Epoch 30/50, Train Loss: 6.0677, Val Loss: 15.8577
+Epoch 31/50, Train Loss: 6.0015, Val Loss: 7.4346
+Saving model for epoch 30...
+Model saved.
+Epoch 32/50, Train Loss: 5.9612, Val Loss: 14.7778
+Epoch 33/50, Train Loss: 5.9624, Val Loss: 7.3917
+Epoch 34/50, Train Loss: 5.9007, Val Loss: 7.5786
+Epoch 35/50, Train Loss: 5.8404, Val Loss: 16.4861
+Epoch 36/50, Train Loss: 5.7944, Val Loss: 7.3080
+Epoch 37/50, Train Loss: 5.7832, Val Loss: 7.2834
+Epoch 38/50, Train Loss: 5.7520, Val Loss: 7.3420
+Epoch 39/50, Train Loss: 5.7326, Val Loss: 10.8875
+Epoch 40/50, Train Loss: 5.6902, Val Loss: 7.2798
+Epoch 41/50, Train Loss: 5.6666, Val Loss: 15.3074
+Saving model for epoch 40...
+Model saved.
+Epoch 42/50, Train Loss: 5.6435, Val Loss: 16.8421
+Epoch 43/50, Train Loss: 5.5934, Val Loss: 7.2753
+Epoch 44/50, Train Loss: 5.5825, Val Loss: 7.4675
+Epoch 45/50, Train Loss: 5.5693, Val Loss: 7.2871
+Epoch 46/50, Train Loss: 5.5522, Val Loss: 7.2870
+Epoch 47/50, Train Loss: 5.5413, Val Loss: 7.2785
+Epoch 48/50, Train Loss: 5.5184, Val Loss: 7.3094
+Epoch 49/50, Train Loss: 5.5087, Val Loss: 7.2873
+Epoch 50/50, Train Loss: 5.5003, Val Loss: 7.2373
+Saving model for epoch 49...
+Model saved.
+Completed: Sat Dec  6 20:13:52 CST 2025
