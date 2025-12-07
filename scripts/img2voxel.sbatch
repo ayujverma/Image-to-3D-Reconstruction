@@ -1,36 +1,50 @@
 #!/bin/bash
-#SBATCH -J img2voxel                  # Job name
-#SBATCH -o img2voxel/logs/slurm_%j.out         # Stdout output file
-#SBATCH -e img2voxel/logs/slurm_%j.err         # Stderr error file
-#SBATCH -p gpu-a100                   # GPU partition (A100 queue)
-#SBATCH -N 1                          # Total number of nodes
-#SBATCH -n 1                          # Total number of tasks
-#SBATCH -t 06:00:00                   # Walltime (hh:mm:ss)
-#SBATCH -A ASC25079                   # Project/Allocation name
-#SBATCH --mail-type=ALL               # Send email at begin and end
-#SBATCH --mail-user=maadhav_kothuri@utexas.edu  # Email for notifications
+#SBATCH -J img2voxel                               # Job name
+#SBATCH -o img2voxel/logs/slurm_%j.out             # Stdout output file
+#SBATCH -e img2voxel/logs/slurm_%j.err             # Stderr error file
+#SBATCH -p gpu-a100                                 # GPU partition
+#SBATCH -N 1                                        # Number of nodes
+#SBATCH -n 1                                        # Number of tasks
+#SBATCH -t 06:00:00                                 # Walltime
+#SBATCH -A ASC25079                                 # Project allocation
+#SBATCH --mail-type=ALL                             # Job notifications
+#SBATCH --mail-user=ayuj@utexas.edu                 # Email
+
+set -e  # Stop on error
+
 # ------------------------------
-# Load system modules in correct order
+# Prepare directories BEFORE running anything
+# ------------------------------
+mkdir -p img2voxel/logs
+
+# ------------------------------
+# Environment Setup
 # ------------------------------
 module purge
-module load gcc/11.2.0
-module load python3/3.9.7
-module load cuda/12.8
+module load cuda/12.2
 
-python -m venv venv
-source venv/bin/activate
-# Restrict PyTorch to the first GPU
-export CUDA_VISIBLE_DEVICES=0
-# Print job info
-echo "============================================================================"
-echo "CHAIR AE TRAINING JOB"
-echo "============================================================================"
-echo "Job started at: $(date)"
-echo "Job ID: $SLURM_JOB_ID"
-echo "Running on node: $(hostname)"
-echo "CUDA Version: $(nvcc --version)"
-echo "PyTorch sees GPU: $(python -c 'import torch; print(torch.cuda.is_available(), torch.cuda.device_count(), torch.cuda.get_device_name(0))')"
-# Create output directories
+# Load conda
+source /work/10692/ayuj/miniconda3/etc/profile.d/conda.sh
+conda activate Image-To-3D
 
-# Run Autoencoder training script
-sudo ./scripts/train_img2voxel.sh
+export CUDA_VISIBLE_DEVICES=0,1,2
+
+# ------------------------------
+# Job Info
+# ------------------------------
+echo "==============================================================================="        
+echo "IMAGE2VOXEL TRAINING JOB"
+echo "Started: $(date)"
+echo "Node: $(hostname)"
+
+echo "CUDA version:"
+nvcc --version
+
+echo "==============================================================================="        
+
+# ------------------------------
+# Run Training
+# ------------------------------
+bash ./scripts/train_img2voxel.sh
+
+echo "Completed: $(date)"

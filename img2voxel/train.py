@@ -1,4 +1,5 @@
 import torch
+import os
 from dataset import load_data
 from models import Image2VoxelModel, train_one_epoch, validate
 from torch.utils.data import DataLoader
@@ -6,11 +7,12 @@ import torch
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import json
+import numpy as np
 
 def train_model(model, train_loader = None, val_loader = None, optimizer = None, device = 'cpu', num_epochs = 30, save_path = None):
     train_losses, val_losses, val_ious = [], [], []
     for epoch in range(num_epochs):
-        train_loss = train_one_epoch(model, train_loader, optimizer, device = "cpu")
+        train_loss = train_one_epoch(model, train_loader, optimizer, device = device)
 
         print(f"Epoch {epoch+1}/{num_epochs} - "
             f"Train Loss: {train_loss:.4f} - ")
@@ -24,7 +26,9 @@ def train_model(model, train_loader = None, val_loader = None, optimizer = None,
                     val_ious.append(val_iou)
     
         if (epoch % 10 == 0 or epoch == num_epochs - 1) and save_path is not None:
-            torch.save(model.state_dict(), save_path + f"epoch{epoch}.pth")
+            # Handle DataParallel saving (remove 'module.' prefix)
+            state_dict = model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict()
+            torch.save(state_dict, save_path + f"epoch{epoch}.pth")
     loss_dict = {
         "train_losses": train_losses,
         "val_losses": val_losses,
@@ -91,6 +95,15 @@ def visualize_image2voxel_results(model_path, dataset, index=0, device="cpu", mo
     # Ground truth voxels
     ax3 = fig.add_subplot(1, 3, 3, projection='3d')
     visualize_voxel_grid(voxel_gt, ax3, title="Ground Truth Voxel Grid")
+    
+    def set_axes_equal(ax):
+        extents = np.array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()])
+        centers = np.mean(extents, axis=1)
+        max_range = np.max(extents[:,1] - extents[:,0])
+        for ctr, axis in zip(centers, [ax.set_xlim3d, ax.set_ylim3d, ax.set_zlim3d]):
+            axis(ctr - max_range/2, ctr + max_range/2)
+    set_axes_equal(ax2)
+    set_axes_equal(ax3)
 
     plt.tight_layout()
     if save_path is not None:
@@ -99,24 +112,32 @@ def visualize_image2voxel_results(model_path, dataset, index=0, device="cpu", mo
 
 def main():
     model = Image2VoxelModel()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.006)
     save_path = "./img2voxel/saved_models/"
+    os.makedirs(save_path, exist_ok=True)
     trainset, testset = load_data()
-    train_loader = DataLoader(trainset, batch_size=32, shuffle=True)
-    test_loader = DataLoader(testset, batch_size=32, shuffle=False)
+    train_loader = DataLoader(trainset, batch_size=192, shuffle=True)
+    test_loader = DataLoader(testset, batch_size=192, shuffle=False)
     device = torch.device("cpu") if not torch.cuda.is_available() else torch.device("cuda")
     print("Using device:", device)
+    
+    if torch.cuda.device_count() > 1:
+        print(f"Using {torch.cuda.device_count()} GPUs!")
+        model = torch.nn.DataParallel(model)
+    
+    model.to(device)
 
-    num_epochs = 40
+    num_epochs = 50
     loss_dict = train_model(model, train_loader=train_loader, val_loader=test_loader, optimizer=optimizer, device=device, num_epochs=num_epochs, save_path = save_path)
     with open("./img2voxel/losses.json", "w") as f:
         json.dump(loss_dict, f, indent=4)
     
     print(len(testset))
-    visualized_idx = [0, 52, 112, 162, 200]
+    visualized_idx = [0, 52, 112, 162, 200, 255]
     for idx in visualized_idx:
         visualize_image2voxel_results(save_path + f"epoch{num_epochs -1}.pth", testset, index=idx, device=device, save_path = "./img2voxel/results/")
     
 
 if __name__ == "__main__":
     main()
+

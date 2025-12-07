@@ -46,6 +46,7 @@ class ImageEncoder(nn.Module):
             z: [B,latent_dim]
         """
 
+        self.backbone = self.backbone.to(x.device)
         # -------------------------
         # Case 1: MULTI-VIEW
         # -------------------------

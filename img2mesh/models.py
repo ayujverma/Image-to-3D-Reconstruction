@@ -61,6 +61,10 @@ class MeshDecoder(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(hidden_dim, V * 3)
         )
+        
+        # Initialize last layer to near-zero to start with a sphere
+        nn.init.normal_(self.mlp[-1].weight, mean=0.0, std=1e-5)
+        nn.init.constant_(self.mlp[-1].bias, 0.0)
 
     def forward(self, z):
         """
@@ -123,20 +127,21 @@ def train_mesh_epoch(model, train_loader, test_loader, optimizer, device = "cpu"
     val_loss = 0
     chamfer_fn = ChamferDistance()
 
+    # Handle DataParallel wrapper
+    if isinstance(model, torch.nn.DataParallel):
+        real_model = model.module
+    else:
+        real_model = model
+
     for batch in train_loader:
         imgs      = batch["images"].to(device)
         gt_points = batch["points"].to(device)   # pre-sampled GT mesh points
-        faces     = model.decoder.F0.to(device)    # fixed template faces
+        faces     = real_model.decoder.F0.to(device)    # fixed template faces
 
         optimizer.zero_grad()
 
         # ---- Forward ----
-        z = model.encoder(imgs)
-        pred_verts = model.decoder(z)     # [B, V, 3]
-
-        # Deform the template
-        template_verts = model.decoder.V0.to(device)  # [V, 3]
-        pred_verts = pred_verts + template_verts          # final mesh verts
+        pred_verts = model(imgs)     # [B, V, 3]
 
         # ---- Sample points from predicted mesh ----
         pred_points = sample_points_on_mesh(pred_verts, faces, num_samples=2048)  # [B, N, 3]
@@ -145,7 +150,7 @@ def train_mesh_epoch(model, train_loader, test_loader, optimizer, device = "cpu"
         chamfer_loss_val = chamfer_fn(pred_points, gt_points)
 
         # ---- Smoothness Loss ----
-        smooth_loss = laplacian_smoothness(pred_verts, model.adj_list)
+        smooth_loss = laplacian_smoothness(pred_verts, real_model.adj_list) + 1.0 * edge_length_regularizer(pred_verts, faces)
 
         # Total loss
         loss = chamfer_loss_val + 0.2 * smooth_loss
@@ -153,23 +158,17 @@ def train_mesh_epoch(model, train_loader, test_loader, optimizer, device = "cpu"
         optimizer.step()
 
         train_loss += loss.item()
-        break
     avg_train_loss = train_loss / len(train_loader)
     
     for batch in test_loader:
         imgs      = batch["images"].to(device)
         gt_points = batch["points"].to(device)   # pre-sampled GT mesh points
-        faces     = model.decoder.F0.to(device)    # fixed template faces
+        faces     = real_model.decoder.F0.to(device)    # fixed template faces
 
         with torch.no_grad():
             model.eval()
             # ---- Forward ----
-            z = model.encoder(imgs)
-            pred_verts = model.decoder(z)     # [B, V, 3]
-
-            # Deform the template
-            template_verts = model.decoder.V0.to(device)  # [V, 3]
-            pred_verts = pred_verts + template_verts          # final mesh verts
+            pred_verts = model(imgs)     # [B, V, 3]
 
             # ---- Sample points from predicted mesh ----
             pred_points = sample_points_on_mesh(pred_verts, faces, num_samples=2048)  # [B, N, 3]
@@ -178,13 +177,12 @@ def train_mesh_epoch(model, train_loader, test_loader, optimizer, device = "cpu"
             chamfer_loss = chamfer_fn(pred_points, gt_points)
 
             # ---- Smoothness Loss ----
-            smooth_loss = laplacian_smoothness(pred_verts, model.adj_list) + edge_length_regularizer(pred_verts, faces)
+            smooth_loss = laplacian_smoothness(pred_verts, real_model.adj_list) + 1.0 * edge_length_regularizer(pred_verts, faces)
 
             # Total loss
             loss = chamfer_loss + 0.2 * smooth_loss
 
             val_loss += loss.item()
-            break
     avg_val_loss = val_loss / len(test_loader)
 
     return avg_train_loss, avg_val_loss
@@ -194,25 +192,27 @@ def build_adjacency_matrix(faces, num_vertices):
     """
     faces: [F, 3] long tensor
     returns:
-       adj: [V, V] boolean adjacency matrix
+       adj: [V, V] float tensor, row-normalized
     """
     if isinstance(faces, torch.Tensor):
         faces_np = faces.cpu().numpy()
     else:
         faces_np = faces
 
-    adj = np.zeros((num_vertices, num_vertices), dtype=np.bool_)
-
-    # For each triangle, add undirected edges
+    # Build adjacency list (set of neighbors for each vertex)
+    adj_sets = [set() for _ in range(num_vertices)]
     for (a, b, c) in faces_np:
-        adj[a, b] = adj[b, a] = True
-        adj[a, c] = adj[c, a] = True
-        adj[b, c] = adj[c, b] = True
+        adj_sets[a].update([b, c])
+        adj_sets[b].update([a, c])
+        adj_sets[c].update([a, b])
 
-    # Remove self-connections just in case
-    np.fill_diagonal(adj, False)
-
-    return torch.tensor(adj, dtype=torch.bool)
+    # Build matrix
+    adj = np.zeros((num_vertices, num_vertices), dtype=np.float32)
+    for i, neighbors in enumerate(adj_sets):
+        if len(neighbors) > 0:
+            adj[i, list(neighbors)] = 1.0 / len(neighbors)
+    
+    return torch.tensor(adj, dtype=torch.float32)
 
 
 
@@ -250,19 +250,21 @@ def sample_points_on_mesh(pred_verts, faces, num_samples):
 # -----------------------------------------------------
 # 3. LAPLACIAN SMOOTHNESS (differentiable)
 # -----------------------------------------------------
-def laplacian_smoothness(pred_verts, adj_list):
-    B, V, _ = pred_verts.shape
-    loss = 0.0
-
-    for v in range(V):
-        neigh = adj_list[v]
-        if len(neigh) == 0:
-            continue
-        neigh_pts = pred_verts[:, neigh, :].mean(dim=1)  # [B,3]
-        center = pred_verts[:, v, :]                     # [B,3]
-        loss = loss + ((center - neigh_pts)**2).sum(dim=1).mean()
-
-    return loss / V
+def laplacian_smoothness(pred_verts, adj_matrix):
+    """
+    pred_verts: [B, V, 3]
+    adj_matrix: [V, V] row-normalized adjacency
+    """
+    # Average of neighbors
+    # [V, V] x [B, V, 3] -> [B, V, 3]
+    # We need to ensure dimensions match for matmul. 
+    # torch.matmul broadcasts: (V, V) x (B, V, 3) -> (B, V, 3)
+    neigh_pts = torch.matmul(adj_matrix, pred_verts)
+    
+    # Difference
+    diff = pred_verts - neigh_pts
+    loss = (diff ** 2).sum(dim=2).mean()
+    return loss
 
 
 # -----------------------------------------------------
@@ -273,13 +275,11 @@ def edge_length_regularizer(pred_verts, faces):
     v1 = pred_verts[:, faces[:, 1], :]
     v2 = pred_verts[:, faces[:, 2], :]
 
-    e01 = torch.norm(v0 - v1, dim=2)
-    e12 = torch.norm(v1 - v2, dim=2)
-    e20 = torch.norm(v2 - v0, dim=2)
+    e01 = torch.sum((v0 - v1)**2, dim=2)
+    e12 = torch.sum((v1 - v2)**2, dim=2)
+    e20 = torch.sum((v2 - v0)**2, dim=2)
 
-    mean_e = (e01 + e12 + e20) / 3.0
-    reg = ((e01 - mean_e)**2 + (e12 - mean_e)**2 + (e20 - mean_e)**2).mean()
-    return reg
+    return (e01 + e12 + e20).mean()
 
 
 # -----------------------------------------------------
